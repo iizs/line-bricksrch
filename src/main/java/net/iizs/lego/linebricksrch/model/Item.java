@@ -3,23 +3,23 @@ package net.iizs.lego.linebricksrch.model;
 import java.util.List;
 
 public class Item {
-    public String product_id;
+    public String productId;
     public String title;
-    public int piece_count;
+    public int pieceCount;
     public List<String> image;
-    public String datetime_updated;
-    public String product_code;
+    public String datetimeUpdated;
+    public String productCode;
     public List<Sku> skus;
 
     @Override
     public String toString() {
         return "Item{" +
-                "product_id='" + product_id + '\'' +
+                "productId='" + productId + '\'' +
                 ", title='" + title + '\'' +
-                ", piece_count=" + piece_count +
+                ", pieceCount=" + pieceCount +
                 ", image=" + image +
-                ", datetime_updated='" + datetime_updated + '\'' +
-                ", product_code='" + product_code + '\'' +
+                ", datetimeUpdated='" + datetimeUpdated + '\'' +
+                ", productCode='" + productCode + '\'' +
                 ", skus=" + skus +
                 '}';
     }
