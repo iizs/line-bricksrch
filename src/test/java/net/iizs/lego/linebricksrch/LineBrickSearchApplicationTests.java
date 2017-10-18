@@ -1,5 +1,6 @@
 package net.iizs.lego.linebricksrch;
 
+import net.iizs.lego.linebricksrch.model.Item;
 import net.iizs.lego.linebricksrch.model.ItemSearchResult;
 import net.iizs.lego.linebricksrch.service.BrickSearchService;
 import org.junit.Test;
@@ -11,13 +12,14 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 import java.io.IOException;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class LineBrickSearchApplicationTests {
 
 	@Autowired
-	BrickSearchService brickSearchService;
+	private BrickSearchService brickSearchService;
 
 	@Test
 	public void contextLoads() {
@@ -28,7 +30,16 @@ public class LineBrickSearchApplicationTests {
 		Call<ItemSearchResult> call = brickSearchService.getByItemNumber("10242");
 		Response<ItemSearchResult> response = call.execute();
 
-		System.out.println(response.body().toString());
+        ItemSearchResult result = response.body();
+
+        assertEquals("10242", result.itemNumber);
+        assertEquals(1, result.items.size());
+        Item item = result.items.get(0);
+        assertEquals(1077, item.pieceCount);
+        assertEquals("MINI Cooper", item.title);
+        assertEquals("10242", item.productCode);
+
+        assertTrue("item.sku.size() > 0", item.skus.size() > 0);
 
 	}
 
