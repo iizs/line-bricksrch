@@ -41,7 +41,13 @@ public class LineBrickSearchApplicationTests {
 
         assertTrue("item.sku.size() > 0", item.skus.size() > 0);
 
-	}
+        call = brickSearchService.getByItemNumber("10101");
+        response = call.execute();
 
+        result = response.body();
+        assertEquals("10101", result.itemNumber);
+        assertEquals(0, result.items.size());
+
+	}
 
 }
