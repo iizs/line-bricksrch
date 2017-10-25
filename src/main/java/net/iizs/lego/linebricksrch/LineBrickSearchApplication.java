@@ -5,9 +5,13 @@ import com.linecorp.bot.model.ReplyMessage;
 import com.linecorp.bot.model.action.*;
 import com.linecorp.bot.model.event.Event;
 import com.linecorp.bot.model.event.MessageEvent;
+import com.linecorp.bot.model.event.PostbackEvent;
 import com.linecorp.bot.model.event.message.TextMessageContent;
 import com.linecorp.bot.model.message.*;
 import com.linecorp.bot.model.message.template.ButtonsTemplate;
+import com.linecorp.bot.model.message.template.CarouselColumn;
+import com.linecorp.bot.model.message.template.CarouselTemplate;
+import com.linecorp.bot.model.message.template.ConfirmTemplate;
 import com.linecorp.bot.model.response.BotApiResponse;
 import com.linecorp.bot.spring.boot.annotation.EventMapping;
 import com.linecorp.bot.spring.boot.annotation.LineMessageHandler;
@@ -104,6 +108,11 @@ public class LineBrickSearchApplication extends SpringBootServletInitializer {
         }
 	}
 
+    @EventMapping
+    public void handlePostbackEvent(PostbackEvent event) {
+        reply(event.getReplyToken(), new TextMessage("Postbackdata: " + event.getPostbackContent().getData()));
+    }
+
 	@EventMapping
 	public void handleDefaultMessageEvent(Event event) {
 		System.out.println("event: " + event);
@@ -122,14 +131,50 @@ public class LineBrickSearchApplication extends SpringBootServletInitializer {
             Action[] actions = {
                     new MessageAction("msg action", "text"),
                     new URIAction("uri action", "http://iizs.net"),
-                    new DatetimePickerAction("datetime action", "param=data", "date"),
-                    new PostbackAction("postback action", "postback", "Postback sent")
+                    new DatetimePickerAction("datetime action", "datetime action postback data", "date"),
+                    new PostbackAction("postback action", "postback action postback data", "Postback sent")
             };
             return Collections.singletonList(new TemplateMessage(
                     "Buttons Template",
                     new ButtonsTemplate(null,"title01", "msg01", Arrays.asList(actions))
             ));
 
+        } else if ( cmd.startsWith("/confirm")) {
+            return Collections.singletonList(new TemplateMessage(
+                    "Confirm Template",
+                    new ConfirmTemplate("Are you sure?",
+                            new PostbackAction("네", "네라고 말했다"),
+                            new PostbackAction("아니오", "아니오라고 말했다"))
+            ));
+        } else if ( cmd.startsWith("/carousel")) {
+            Action[] actions = {
+                    new MessageAction("msg action", "text"),
+                    new URIAction("uri action", "http://iizs.net"),
+                    new PostbackAction("postback action", "postback action postback data", "Postback sent")
+            };
+
+            CarouselColumn[] columns = {
+                    new CarouselColumn(null,"carousel1", "description", Collections.singletonList(new PostbackAction("네", "네라고 말했다"))),
+                    new CarouselColumn(null,"carousel2", "description", Collections.singletonList(new PostbackAction("Yes", "Yes라고 말했다"))),
+                    new CarouselColumn(null,"carousel3", "description", Collections.singletonList(new PostbackAction("No", "No라고 말했다"))),
+            };
+
+            return Collections.singletonList(new TemplateMessage(
+                    "Carousel Template",
+                    new CarouselTemplate(Arrays.asList(columns))
+            ));
+
+        } else if ( cmd.startsWith("/help")) {
+            Action[] actions = {
+                    new MessageAction("/sticker pid sid", "/sticker 1 1"),
+                    new MessageAction("/button", "/button"),
+                    new MessageAction("/confirm", "/confirm"),
+                    new MessageAction("/carousel #_actions", "/carousel 1"),
+            };
+            return Collections.singletonList(new TemplateMessage(
+                    "Buttons Template",
+                    new ButtonsTemplate(null,"title01", "msg01", Arrays.asList(actions))
+            ));
         }
 
 	    return Collections.singletonList(new TextMessage("알 수 없는 명령어입니다."));
