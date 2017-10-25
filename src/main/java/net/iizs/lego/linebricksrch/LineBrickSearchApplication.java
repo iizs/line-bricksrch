@@ -2,12 +2,12 @@ package net.iizs.lego.linebricksrch;
 
 import com.linecorp.bot.client.LineMessagingClient;
 import com.linecorp.bot.model.ReplyMessage;
+import com.linecorp.bot.model.action.*;
 import com.linecorp.bot.model.event.Event;
 import com.linecorp.bot.model.event.MessageEvent;
 import com.linecorp.bot.model.event.message.TextMessageContent;
-import com.linecorp.bot.model.message.ImageMessage;
-import com.linecorp.bot.model.message.Message;
-import com.linecorp.bot.model.message.TextMessage;
+import com.linecorp.bot.model.message.*;
+import com.linecorp.bot.model.message.template.ButtonsTemplate;
 import com.linecorp.bot.model.response.BotApiResponse;
 import com.linecorp.bot.spring.boot.annotation.EventMapping;
 import com.linecorp.bot.spring.boot.annotation.LineMessageHandler;
@@ -25,6 +25,7 @@ import retrofit2.Response;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -54,8 +55,10 @@ public class LineBrickSearchApplication extends SpringBootServletInitializer {
 
         ArrayList<Message> replyMessages = new ArrayList<>();
 
-		try {
-            String itemNumber = event.getMessage().getText().trim();
+        String itemNumber = event.getMessage().getText().trim();
+
+        try {
+
             Integer.parseInt(itemNumber);
             ItemSearchResult searchResult = getItemSearchResultByItemNumber(itemNumber);
 
@@ -84,8 +87,12 @@ public class LineBrickSearchApplication extends SpringBootServletInitializer {
             // TODO: make string to constant
             replyMessages.add(new TextMessage(String.format("%1$s에 대한 정보를 찾을 수 없습니다.", e.getMessage() )));
         } catch( NumberFormatException e ) {
-		    // TODO: make string to constant
-            replyMessages.add(new TextMessage("숫자를 입력해주세요.") );
+            if ( itemNumber.charAt(0) == '/' ) {
+                replyMessages.addAll(handleCommand( event.getReplyToken(), itemNumber ));
+            } else {
+                // TODO: make string to constant
+                replyMessages.add(new TextMessage("숫자를 입력해주세요."));
+            }
         } catch ( IOException e ) {
             // TODO: make string to constant
             replyMessages.add(new TextMessage("나중에 다시 시도해주세요."));
@@ -101,6 +108,32 @@ public class LineBrickSearchApplication extends SpringBootServletInitializer {
 	public void handleDefaultMessageEvent(Event event) {
 		System.out.println("event: " + event);
 	}
+
+    private List<Message> handleCommand(String replyToken, String command) {
+        String[] args = command.split(" ");
+        String cmd = args[0];
+
+        if ( cmd.startsWith("/sticker") ) {
+            if ( args.length < 3 ) {
+                return Collections.singletonList(new TextMessage("Usage: /sticker pkgId stickerId"));
+            }
+            return Collections.singletonList(new StickerMessage(args[1], args[2]));
+        } else if ( cmd.startsWith("/button")) {
+            Action[] actions = {
+                    new MessageAction("msg action", "text"),
+                    new URIAction("uri action", "http://iizs.net"),
+                    new DatetimePickerAction("datetime action", "param=data", "date"),
+                    new PostbackAction("postback action", "postback", "Postback sent")
+            };
+            return Collections.singletonList(new TemplateMessage(
+                    "Buttons Template",
+                    new ButtonsTemplate(null,"title01", "msg01", Arrays.asList(actions))
+            ));
+
+        }
+
+	    return Collections.singletonList(new TextMessage("알 수 없는 명령어입니다."));
+    }
 
 	private ItemSearchResult getItemSearchResultByItemNumber(String itemNumber) throws IOException {
         Call<ItemSearchResult> call = brickSearchService.getByItemNumber(itemNumber);
